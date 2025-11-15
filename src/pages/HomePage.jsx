@@ -64,9 +64,6 @@ const HomePage = () => {
               </h1>
               <p className="text-sm text-gray-600 mt-1">Платформа автоматизации той-бизнеса</p>
             </div>
-            <Link to="/admin" className="btn-outline text-sm">
-              Админ панель
-            </Link>
           </div>
         </div>
       </header>

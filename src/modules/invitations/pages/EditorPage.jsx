@@ -81,22 +81,22 @@ const EditorPage = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link to="/invitations" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-wrap">
+              <Link to="/invitations" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0">
+                <svg className="w-5 h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Назад
+                <span className="hidden sm:inline">Назад</span>
               </Link>
-              <h1 className="text-lg font-bold text-gray-900">Редактор приглашения</h1>
+              <h1 className="text-base sm:text-lg font-bold text-gray-900">Редактор приглашения</h1>
             </div>
-            <div className="flex items-center space-x-2">
-              <button onClick={resetBlocks} className="btn-secondary text-sm">
+            <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+              <button onClick={resetBlocks} className="btn-secondary text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">
                 Сбросить
               </button>
-              <button onClick={handlePublish} className="btn-primary text-sm">
+              <button onClick={handlePublish} className="btn-primary text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">
                 Опубликовать
               </button>
             </div>
@@ -105,7 +105,7 @@ const EditorPage = () => {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6 sm:py-8 pb-24 sm:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Editor Panel */}
           <div className="order-2 lg:order-1">

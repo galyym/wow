@@ -67,16 +67,16 @@ const PublishPage = () => {
         <div className="card mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Ссылка на приглашение</h2>
           
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg mb-4">
+          <div className="p-4 bg-gray-50 rounded-lg mb-4">
             <input
               type="text"
               value={invitationUrl}
               readOnly
-              className="flex-1 bg-transparent border-none focus:outline-none text-sm"
+              className="w-full bg-transparent border-none focus:outline-none text-sm mb-3"
             />
             <button
               onClick={handleCopyLink}
-              className="btn-primary"
+              className="btn-primary w-full"
             >
               {copySuccess ? (
                 <>
