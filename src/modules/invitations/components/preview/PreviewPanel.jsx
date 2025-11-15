@@ -239,7 +239,7 @@ const PreviewPanel = ({ blocks, templateId }) => {
       
       <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
         <div 
-          className="relative min-h-[600px] overflow-y-auto"
+          className="relative min-h-[600px]"
           style={backgroundStyle}
         >
           {/* Overlay if using background image with pattern */}

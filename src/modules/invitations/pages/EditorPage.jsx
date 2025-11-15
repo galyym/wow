@@ -109,19 +109,25 @@ const EditorPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Editor Panel */}
           <div className="order-2 lg:order-1">
-            <BlocksEditor 
-              blocks={blocks}
-              updateBlock={updateBlock}
-              toggleBlock={toggleBlock}
-              reorderBlocks={reorderBlocks}
-            />
+            <div className="sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto pr-2 -mr-2">
+              <div className="pr-2">
+                <BlocksEditor 
+                  blocks={blocks}
+                  updateBlock={updateBlock}
+                  toggleBlock={toggleBlock}
+                  reorderBlocks={reorderBlocks}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Preview Panel */}
           {!isMobile ? (
             <div className="order-1 lg:order-2">
-              <div className="sticky top-24">
-                <PreviewPanel blocks={blocks} templateId={templateId} />
+              <div className="sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto pr-2 -mr-2">
+                <div className="pr-2">
+                  <PreviewPanel blocks={blocks} templateId={templateId} />
+                </div>
               </div>
             </div>
           ) : (
