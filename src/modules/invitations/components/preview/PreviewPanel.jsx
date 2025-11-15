@@ -537,24 +537,180 @@ function renderBlockPreview(block, templateId) {
       ) : null;
 
     case 'tables':
+      const getTableColor = (role) => {
+        switch(role) {
+          case 'Близкий друг': return { border: '#3b82f6', bg: '#dbeafe', text: '#1e40af' };
+          case 'Родственник': return { border: '#10b981', bg: '#d1fae5', text: '#065f46' };
+          case 'Жиен': return { border: '#f59e0b', bg: '#fef3c7', text: '#92400e' };
+          case 'Көрші': return { border: '#8b5cf6', bg: '#ede9fe', text: '#5b21b6' };
+          default: return { border: '#6b7280', bg: '#f3f4f6', text: '#374151' };
+        }
+      };
+      
+      const getTableSize = (totalTables) => {
+        if (totalTables <= 4) {
+          return { size: 140, fontSize: 16, smallFontSize: 12 };
+        } else if (totalTables <= 6) {
+          return { size: 120, fontSize: 15, smallFontSize: 11 };
+        } else if (totalTables <= 9) {
+          return { size: 100, fontSize: 14, smallFontSize: 10 };
+        } else if (totalTables <= 12) {
+          return { size: 90, fontSize: 13, smallFontSize: 9 };
+        } else if (totalTables <= 16) {
+          return { size: 80, fontSize: 12, smallFontSize: 9 };
+        } else {
+          return { size: 70, fontSize: 11, smallFontSize: 8 };
+        }
+      };
+      
       return data.tables && data.tables.length > 0 ? (
         <div 
           className="p-6 rounded-lg"
           style={{ 
-            backgroundColor: data.bgColor,
-            fontSize: `${data.fontSize}px`,
-            color: data.color
+            backgroundColor: data.bgColor || '#ffffff',
+            fontSize: `${data.fontSize || 16}px`,
+            color: data.color || '#1f2937'
           }}
         >
-          <h3 className="text-xl font-bold mb-4">Рассадка гостей</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {data.tables.map((table, index) => (
-              <div key={index} className="border p-3 rounded">
-                <p className="font-semibold">{table.name}</p>
-                <p className="text-sm">Мест: {table.seats}</p>
-                <p className="text-sm">{table.role}</p>
+          <h3 className="text-xl font-bold mb-6 text-gray-900">Рассадка гостей</h3>
+          
+          {/* Restaurant floor plan using CSS Grid */}
+          <div 
+            className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-8 border-2 border-amber-200 shadow-lg"
+            style={{ 
+              minHeight: data.orientation === 'vertical' ? '600px' : '500px',
+              display: 'grid',
+              gridTemplateColumns: `repeat(${data.tablesPerRow || 3}, 1fr)`,
+              gridTemplateRows: `repeat(${data.rows || 2}, 1fr)`,
+              gap: '20px',
+              padding: '30px',
+              backgroundImage: `
+                linear-gradient(to right, rgba(251, 191, 36, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(251, 191, 36, 0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px'
+            }}
+          >
+            {data.tables.map((table, index) => {
+              const colors = getTableColor(table.role);
+              const rows = data.rows || 2;
+              const tablesPerRow = data.tablesPerRow || 3;
+              const totalTables = rows * tablesPerRow;
+              const tableSize = getTableSize(totalTables);
+              
+              return (
+                <div
+                  key={table.id || index}
+                  className="flex items-center justify-center"
+                  style={{
+                    gridRow: table.row !== undefined ? table.row + 1 : Math.floor(index / tablesPerRow) + 1,
+                    gridColumn: table.col !== undefined ? table.col + 1 : (index % tablesPerRow) + 1
+                  }}
+                >
+                  <div className="relative group">
+                    {/* Table visualization */}
+                    <div 
+                      className="rounded-full border-4 shadow-xl flex flex-col items-center justify-center transition-all hover:scale-110"
+                      style={{
+                        width: `${tableSize.size}px`,
+                        height: `${tableSize.size}px`,
+                        borderColor: colors.border,
+                        backgroundColor: colors.bg
+                      }}
+                    >
+                      <div className="text-center px-2">
+                        <div 
+                          className="font-bold"
+                          style={{ 
+                            color: colors.text,
+                            fontSize: `${tableSize.fontSize}px`,
+                            lineHeight: '1.2'
+                          }}
+                        >
+                          {table.name}
+                        </div>
+                        <div 
+                          className="mt-1 font-semibold"
+                          style={{ 
+                            color: colors.text, 
+                            opacity: 0.8,
+                            fontSize: `${tableSize.smallFontSize}px`,
+                            lineHeight: '1.2'
+                          }}
+                        >
+                          {table.seats} мест
+                        </div>
+                        <div 
+                          className="mt-0.5"
+                          style={{ 
+                            color: colors.text, 
+                            opacity: 0.7,
+                            fontSize: `${Math.max(7, tableSize.smallFontSize * 0.9)}px`,
+                            lineHeight: '1.2'
+                          }}
+                        >
+                          {table.role}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Table legs */}
+                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
+                      <div 
+                        className="rounded-full shadow-md"
+                        style={{ 
+                          backgroundColor: colors.border, 
+                          opacity: 0.6,
+                          width: `${Math.max(8, tableSize.size * 0.08)}px`,
+                          height: `${Math.max(8, tableSize.size * 0.08)}px`
+                        }}
+                      />
+                      <div 
+                        className="rounded-full shadow-md"
+                        style={{ 
+                          backgroundColor: colors.border, 
+                          opacity: 0.6,
+                          width: `${Math.max(8, tableSize.size * 0.08)}px`,
+                          height: `${Math.max(8, tableSize.size * 0.08)}px`
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Table number badge */}
+                    <div 
+                      className="absolute -top-2 -right-2 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
+                      style={{ 
+                        backgroundColor: colors.border,
+                        width: `${Math.max(20, tableSize.size * 0.2)}px`,
+                        height: `${Math.max(20, tableSize.size * 0.2)}px`,
+                        fontSize: `${Math.max(10, tableSize.size * 0.12)}px`
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {/* Legend */}
+            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200">
+              <p className="text-xs font-semibold text-gray-700 mb-2">Легенда:</p>
+              <div className="space-y-1 text-xs">
+                {['Близкий друг', 'Родственник', 'Жиен', 'Көрші', 'Гость'].map(role => {
+                  const colors = getTableColor(role);
+                  return (
+                    <div key={role} className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border-2"
+                        style={{ borderColor: colors.border, backgroundColor: colors.bg }}
+                      />
+                      <span className="text-gray-600">{role}</span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       ) : null;

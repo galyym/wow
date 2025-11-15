@@ -23,7 +23,7 @@ const EditorPage = () => {
     { id: 'timeline', name: 'История молодожёнов', enabled: false, order: 8, data: { events: [] } },
     { id: 'music', name: 'Фоновая музыка', enabled: false, order: 9, data: { audioUrl: null, volume: 0.5 } },
     { id: 'gift', name: 'Реквизиты для подарков', enabled: false, order: 10, data: { bank: 'Kaspi Bank', cardNumber: '', phone: '', fontSize: 16, color: '#ffffff', bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', cardStyle: 'gradient' } },
-    { id: 'tables', name: 'Места в ресторане', enabled: false, order: 11, data: { tables: [] } },
+    { id: 'tables', name: 'Места в ресторане', enabled: false, order: 11, data: { tables: [], rows: 2, tablesPerRow: 3, orientation: 'horizontal' } },
     { id: 'background', name: 'Задний фон', enabled: true, order: 12, data: { type: 'color', value: '#ffffff', pattern: null, blur: 0, animation: null, palette: { primary: '#D4AF37', secondary: '#ffffff', accent: '#C8102E' } } }
   ]);
 
