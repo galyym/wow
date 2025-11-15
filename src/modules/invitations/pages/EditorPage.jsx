@@ -24,7 +24,7 @@ const EditorPage = () => {
     { id: 'music', name: 'Фоновая музыка', enabled: false, order: 9, data: { audioUrl: null, volume: 0.5 } },
     { id: 'gift', name: 'Реквизиты для подарков', enabled: false, order: 10, data: { bank: 'Kaspi Bank', cardNumber: '', phone: '', fontSize: 16, color: '#ffffff', bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', cardStyle: 'gradient' } },
     { id: 'tables', name: 'Места в ресторане', enabled: false, order: 11, data: { tables: [], rows: 2, tablesPerRow: 3, orientation: 'horizontal' } },
-    { id: 'background', name: 'Задний фон', enabled: true, order: 12, data: { type: 'color', value: '#ffffff', pattern: null, blur: 0, animation: null, palette: { primary: '#D4AF37', secondary: '#ffffff', accent: '#C8102E' } } }
+    { id: 'background', name: 'Задний фон', enabled: true, order: 12, data: { type: 'smart', smartBackground: null, color: '#ffffff', image: null, toneFilter: 'neutral', brightness: 100, blur: 0, pattern: 'none', patternOpacity: 0.2, patternColor: '#000000', patternSize: 50, patternPosition: 'full', overlay: false, overlayColor: 'rgba(0,0,0,0.1)', imageScale: 100, imagePosition: { x: 50, y: 50 } } }
   ]);
 
   // Проверка мобильного устройства

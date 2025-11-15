@@ -225,12 +225,94 @@ const PreviewPanel = ({ blocks, templateId }) => {
   const musicBlock = blocks.find(b => b.id === 'music');
   const bg = backgroundBlock?.data || {};
 
-  const backgroundStyle = {
-    backgroundColor: bg.type === 'color' ? bg.value : '#ffffff',
-    backgroundImage: bg.type === 'image' && bg.value ? `url(${bg.value})` : 'none',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    filter: bg.blur ? `blur(${bg.blur}px)` : 'none'
+  // Функция для получения стиля узора
+  const getPatternStyle = (patternType, color = '#000000', size = 50) => {
+    const patterns = {
+      'lines-vertical': `repeating-linear-gradient(0deg, ${color} 0px, ${color} 2px, transparent 2px, transparent ${size}px)`,
+      'lines-horizontal': `repeating-linear-gradient(90deg, ${color} 0px, ${color} 2px, transparent 2px, transparent ${size}px)`,
+      'lines-diagonal': `repeating-linear-gradient(45deg, ${color} 0px, ${color} 2px, transparent 2px, transparent ${size}px)`,
+      'dots': `radial-gradient(circle, ${color} 2px, transparent 2px)`,
+      'grid': `
+        linear-gradient(${color} 1px, transparent 1px),
+        linear-gradient(90deg, ${color} 1px, transparent 1px)
+      `,
+      'waves': `repeating-linear-gradient(0deg, transparent, transparent 10px, ${color} 10px, ${color} 12px)`,
+      'circles': `radial-gradient(circle at 50% 50%, ${color} 3px, transparent 3px)`,
+      'floral': `radial-gradient(circle, ${color} 1px, transparent 1px)`,
+      'geometric': `
+        linear-gradient(45deg, ${color} 25%, transparent 25%),
+        linear-gradient(-45deg, ${color} 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, ${color} 75%),
+        linear-gradient(-45deg, transparent 75%, ${color} 75%)
+      `
+    };
+    return patterns[patternType] || 'none';
+  };
+
+  // Функция для получения позиции узора
+  const getPatternPosition = (position) => {
+    const positions = {
+      'full': { inset: '0' },
+      'left': { left: '0', top: '0', bottom: '0', width: '30%' },
+      'right': { right: '0', top: '0', bottom: '0', width: '30%' },
+      'top': { top: '0', left: '0', right: '0', height: '30%' },
+      'bottom': { bottom: '0', left: '0', right: '0', height: '30%' },
+      'top-left': { top: '0', left: '0', width: '40%', height: '40%' },
+      'top-right': { top: '0', right: '0', width: '40%', height: '40%' },
+      'bottom-left': { bottom: '0', left: '0', width: '40%', height: '40%' },
+      'bottom-right': { bottom: '0', right: '0', width: '40%', height: '40%' },
+      'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%' }
+    };
+    return positions[position] || positions.full;
+  };
+
+  // Функция для получения фильтра оттенка
+  const getToneFilter = (tone) => {
+    const filters = {
+      'warm': 'sepia(0.2) saturate(1.1)',
+      'neutral': 'none',
+      'cool': 'hue-rotate(180deg) saturate(0.9)'
+    };
+    return filters[tone] || 'none';
+  };
+
+  // Вычисление стиля фона
+  const getBackgroundStyle = () => {
+    const style = {};
+    
+    // Базовый фон
+    if (bg.type === 'smart' && bg.background) {
+      // Смарт-фон с готовой композицией
+      style.background = bg.background;
+      style.backgroundColor = '#ffffff'; // fallback
+    } else if (bg.type === 'color') {
+      style.backgroundColor = bg.color || '#ffffff';
+    } else if (bg.type === 'image' && bg.image) {
+      style.backgroundImage = `url(${bg.image})`;
+      style.backgroundSize = bg.imageScale ? `${bg.imageScale}%` : 'cover';
+      style.backgroundPosition = bg.imagePosition 
+        ? `${bg.imagePosition.x}% ${bg.imagePosition.y}%`
+        : 'center';
+      style.backgroundColor = '#ffffff'; // fallback
+    } else {
+      style.backgroundColor = '#ffffff';
+    }
+
+    // Фильтры (применяются ко всему фону)
+    const filters = [];
+    if (bg.blur) filters.push(`blur(${bg.blur}px)`);
+    if (bg.toneFilter && bg.toneFilter !== 'neutral') {
+      const toneFilter = getToneFilter(bg.toneFilter);
+      if (toneFilter !== 'none') filters.push(toneFilter);
+    }
+    if (bg.brightness && bg.brightness !== 100) {
+      filters.push(`brightness(${bg.brightness}%)`);
+    }
+    if (filters.length > 0) {
+      style.filter = filters.join(' ');
+    }
+
+    return style;
   };
 
   return (
@@ -240,15 +322,27 @@ const PreviewPanel = ({ blocks, templateId }) => {
       <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
         <div 
           className="relative min-h-[600px]"
-          style={backgroundStyle}
+          style={getBackgroundStyle()}
         >
-          {/* Overlay if using background image with pattern */}
+          {/* Pattern overlay with positioning */}
           {bg.pattern && bg.pattern !== 'none' && (
+            <div 
+              className="absolute pointer-events-none"
+              style={{
+                ...getPatternPosition(bg.patternPosition || 'full'),
+                opacity: bg.patternOpacity ?? 0.2,
+                backgroundImage: getPatternStyle(bg.pattern, bg.patternColor || '#000000', bg.patternSize || 50),
+                backgroundSize: `${bg.patternSize || 50}px ${bg.patternSize || 50}px`
+              }}
+            />
+          )}
+
+          {/* Overlay color */}
+          {bg.overlay && (
             <div 
               className="absolute inset-0 pointer-events-none"
               style={{
-                opacity: bg.patternOpacity || 0.2,
-                backgroundImage: getPatternStyle(bg.pattern)
+                backgroundColor: bg.overlayColor || 'rgba(0,0,0,0.1)'
               }}
             />
           )}
