@@ -14,7 +14,7 @@ const EditorPage = () => {
   const [blocks, setBlocks] = useState([
     { id: 'photo', name: 'Фотография молодожёнов', enabled: true, order: 0, data: { image: null, cropData: null } },
     { id: 'names', name: 'Имена молодожёнов', enabled: true, order: 1, data: { text: 'Қазақ & Қазақ', font: 'Playfair Display', fontSize: 32, color: '#1f2937', bgColor: '#ffffff' } },
-    { id: 'description', name: 'Описание свадьбы', enabled: true, order: 2, data: { text: '', fontSize: 16, color: '#4b5563', bgColor: '#ffffff' } },
+    { id: 'description', name: 'Описание свадьбы', enabled: true, order: 2, data: { text: '', fontSize: 16, color: '#4b5563', bgColor: '#ffffff', textAlign: 'left' } },
     { id: 'gallery', name: 'Галерея', enabled: false, order: 3, data: { images: [] } },
     { id: 'schedule', name: 'Сценарий свадьбы', enabled: true, order: 4, data: { events: [{ time: '18:00', event: 'Беташар' }] } },
     { id: 'restaurant', name: 'Информация о ресторане', enabled: true, order: 5, data: { name: '', address: '', mapUrl: '' } },

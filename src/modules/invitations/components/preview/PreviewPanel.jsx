@@ -12,16 +12,23 @@ const GallerySlider = ({ images }) => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const goToIndex = (idx) => {
+    if (idx !== currentIndex) {
+      setCurrentIndex(idx);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow overflow-hidden">
       <h3 className="text-xl font-bold text-gray-900 mb-4">Галерея</h3>
       <div className="relative">
         {/* Main Image */}
-        <div className="aspect-video overflow-hidden rounded-lg bg-gray-100">
+        <div className="aspect-video overflow-hidden rounded-lg bg-gray-100 relative">
           <img
+            key={currentIndex}
             src={images[currentIndex].url}
             alt={`Gallery ${currentIndex + 1}`}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="w-full h-full object-cover gallery-image-enter transition-all duration-500 ease-in-out"
           />
         </div>
 
@@ -30,17 +37,17 @@ const GallerySlider = ({ images }) => {
           <>
             <button
               onClick={goToPrevious}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -48,31 +55,34 @@ const GallerySlider = ({ images }) => {
         )}
 
         {/* Counter */}
-        <div className="absolute bottom-3 right-3 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm font-medium">
+        <div className="absolute bottom-3 right-3 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 backdrop-blur-sm">
           {currentIndex + 1} / {images.length}
         </div>
       </div>
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {images.map((img, idx) => (
             <button
               key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all ${
-                idx === currentIndex ? 'ring-2 ring-primary-500' : 'opacity-60 hover:opacity-100'
+              onClick={() => goToIndex(idx)}
+              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all duration-300 ${
+                idx === currentIndex 
+                  ? 'ring-2 ring-primary-500 scale-110 shadow-lg' 
+                  : 'opacity-60 hover:opacity-100 hover:scale-105'
               }`}
             >
               <img
                 src={img.url}
                 alt={`Thumbnail ${idx + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
               />
             </button>
           ))}
         </div>
       )}
+
     </div>
   );
 };
@@ -99,14 +109,14 @@ const TimelinePreview = ({ events }) => {
                 className={`flex ${event.side === 'right' ? 'flex-row-reverse' : ''}`}
               >
                 {/* Content */}
-                <div className={`w-1/2 ${event.side === 'right' ? 'pl-8' : 'pr-8'}`}>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                <div className={`w-1/2 min-w-0 ${event.side === 'right' ? 'pl-8' : 'pr-8'}`}>
+                  <div className="bg-gray-50 p-4 rounded-lg max-w-full">
                     <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">
                       {event.date}
                     </p>
-                    <h4 className="font-bold text-lg text-gray-900 mt-1">{event.title}</h4>
+                    <h4 className="font-bold text-lg text-gray-900 mt-1 break-words">{event.title}</h4>
                     {event.description && (
-                      <p className="text-gray-700 text-sm mt-2">{event.description}</p>
+                      <p className="text-gray-700 text-sm mt-2 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{event.description}</p>
                     )}
                   </div>
                 </div>
@@ -119,11 +129,26 @@ const TimelinePreview = ({ events }) => {
                 {/* Photo space */}
                 <div className={`w-1/2 flex items-start ${event.side === 'right' ? 'justify-end pr-8' : 'pl-8'}`}>
                   {event.photo && (
-                    <img
-                      src={event.photo}
-                      alt={event.title}
-                      className="w-24 h-24 rounded-full object-cover shadow-lg border-4 border-white"
-                    />
+                    <div 
+                      className="w-24 h-24 rounded-full shadow-lg border-4 border-white overflow-hidden bg-gray-100"
+                      style={{
+                        maskImage: event.cropData 
+                          ? `radial-gradient(circle at ${event.cropData.x * 100}% ${event.cropData.y * 100}%, black ${event.cropData.radius * 100}%, transparent ${event.cropData.radius * 100}%)`
+                          : 'none',
+                        WebkitMaskImage: event.cropData 
+                          ? `radial-gradient(circle at ${event.cropData.x * 100}% ${event.cropData.y * 100}%, black ${event.cropData.radius * 100}%, transparent ${event.cropData.radius * 100}%)`
+                          : 'none'
+                      }}
+                    >
+                      <img
+                        src={event.photo}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                        style={event.cropData ? {
+                          objectPosition: `${event.cropData.x * 100}% ${event.cropData.y * 100}%`
+                        } : {}}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -156,18 +181,35 @@ const TimelinePreview = ({ events }) => {
           {events[activeIndex] && (
             <div className="bg-gradient-to-br from-primary-50 to-primary-100 p-4 rounded-lg border border-primary-200">
               {events[activeIndex].photo && (
-                <img
-                  src={events[activeIndex].photo}
-                  alt={events[activeIndex].title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
-                />
+                <div className="mb-4 flex justify-center">
+                  <div 
+                    className="w-32 h-32 rounded-full shadow-lg border-4 border-white overflow-hidden bg-gray-100"
+                    style={{
+                      maskImage: events[activeIndex].cropData 
+                        ? `radial-gradient(circle at ${events[activeIndex].cropData.x * 100}% ${events[activeIndex].cropData.y * 100}%, black ${events[activeIndex].cropData.radius * 100}%, transparent ${events[activeIndex].cropData.radius * 100}%)`
+                        : 'none',
+                      WebkitMaskImage: events[activeIndex].cropData 
+                        ? `radial-gradient(circle at ${events[activeIndex].cropData.x * 100}% ${events[activeIndex].cropData.y * 100}%, black ${events[activeIndex].cropData.radius * 100}%, transparent ${events[activeIndex].cropData.radius * 100}%)`
+                        : 'none'
+                    }}
+                  >
+                    <img
+                      src={events[activeIndex].photo}
+                      alt={events[activeIndex].title}
+                      className="w-full h-full object-cover"
+                      style={events[activeIndex].cropData ? {
+                        objectPosition: `${events[activeIndex].cropData.x * 100}% ${events[activeIndex].cropData.y * 100}%`
+                      } : {}}
+                    />
+                  </div>
+                </div>
               )}
               <p className="text-xs text-primary-700 uppercase tracking-wide font-semibold">
                 {events[activeIndex].date}
               </p>
-              <h4 className="font-bold text-lg text-gray-900 mt-2">{events[activeIndex].title}</h4>
+              <h4 className="font-bold text-lg text-gray-900 mt-2 break-words">{events[activeIndex].title}</h4>
               {events[activeIndex].description && (
-                <p className="text-gray-700 text-sm mt-2">{events[activeIndex].description}</p>
+                <p className="text-gray-700 text-sm mt-2 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{events[activeIndex].description}</p>
               )}
             </div>
           )}
@@ -257,10 +299,10 @@ function renderBlockPreview(block, templateId) {
             className="w-64 h-64 rounded-full shadow-xl border-4 border-white overflow-hidden bg-gray-100 flex-shrink-0"
             style={{
               maskImage: data.cropData 
-                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}% + 2%)`
+                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}%)`
                 : 'none',
               WebkitMaskImage: data.cropData 
-                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}% + 2%)`
+                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}%)`
                 : 'none'
             }}
           >
@@ -301,7 +343,12 @@ function renderBlockPreview(block, templateId) {
             color: data.color
           }}
         >
-          <p className="whitespace-pre-wrap">{data.text}</p>
+          <p 
+            className="whitespace-pre-wrap"
+            style={{ textAlign: data.textAlign || 'left' }}
+          >
+            {data.text}
+          </p>
         </div>
       ) : null;
 

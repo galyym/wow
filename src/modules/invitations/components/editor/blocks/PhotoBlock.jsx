@@ -5,8 +5,8 @@ const PhotoBlock = ({ data, onChange }) => {
   const [cropData, setCropData] = useState(data.cropData || { x: 0.5, y: 0.5, radius: 0.3 });
   const [showCropper, setShowCropper] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragType, setDragType] = useState(null); // 'move', 'resize'
-  const canvasRef = useRef(null);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [cropStart, setCropStart] = useState({ x: 0.5, y: 0.5, radius: 0.3 });
   const containerRef = useRef(null);
 
   const handleImageUpload = (e) => {
@@ -21,59 +21,98 @@ const PhotoBlock = ({ data, onChange }) => {
       reader.onloadend = () => {
         const imageData = reader.result;
         setImagePreview(imageData);
-        setCropData({ x: 0.5, y: 0.5, radius: 0.3 });
+        const initialCrop = { x: 0.5, y: 0.5, radius: 0.3 };
+        setCropData(initialCrop);
         setShowCropper(true);
-        onChange({ image: imageData, cropData: { x: 0.5, y: 0.5, radius: 0.3 } });
+        onChange({ image: imageData, cropData: initialCrop });
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const getRelativeCoords = (e) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height
+    };
+  };
+
+  const getDistance = (p1, p2) => {
+    return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+  };
+
   const handleMouseDown = (e) => {
     if (!containerRef.current) return;
     
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    const coords = getRelativeCoords(e);
+    const distToCenter = getDistance(coords, cropData);
+    const distToHandle = getDistance(coords, { 
+      x: cropData.x + cropData.radius, 
+      y: cropData.y 
+    });
     
-    const distToCenter = Math.sqrt((x - cropData.x) ** 2 + (y - cropData.y) ** 2);
-    
-    if (distToCenter < cropData.radius + 0.05) {
+    // Определяем, что перетаскиваем: центр (move), ручку (resize) или ничего
+    if (distToHandle < 0.05) {
+      // Перетаскиваем ручку изменения размера
       setIsDragging(true);
-      setDragType(distToCenter < cropData.radius - 0.02 ? 'move' : 'resize');
+      setDragStart(coords);
+      setCropStart(cropData);
+    } else if (distToCenter < cropData.radius) {
+      // Перетаскиваем центр круга
+      setIsDragging(true);
+      setDragStart(coords);
+      setCropStart(cropData);
     }
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging || !containerRef.current) return;
     
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    const coords = getRelativeCoords(e);
+    const deltaX = coords.x - dragStart.x;
+    const deltaY = coords.y - dragStart.y;
     
-    if (dragType === 'move') {
-      const newX = Math.max(cropData.radius, Math.min(1 - cropData.radius, x));
-      const newY = Math.max(cropData.radius, Math.min(1 - cropData.radius, y));
-      setCropData({ ...cropData, x: newX, y: newY });
-    } else if (dragType === 'resize') {
-      const newRadius = Math.min(0.5, Math.sqrt((x - cropData.x) ** 2 + (y - cropData.y) ** 2));
-      setCropData({ ...cropData, radius: Math.max(0.1, newRadius) });
+    // Проверяем, перетаскиваем ли мы ручку изменения размера
+    const distToHandle = getDistance(dragStart, { 
+      x: cropStart.x + cropStart.radius, 
+      y: cropStart.y 
+    });
+    
+    if (distToHandle < 0.05) {
+      // Изменяем размер
+      const newRadius = Math.min(
+        0.45,
+        Math.max(0.1, getDistance(coords, cropStart))
+      );
+      setCropData({ ...cropStart, radius: newRadius });
+    } else {
+      // Перемещаем центр
+      const newX = Math.max(cropStart.radius, Math.min(1 - cropStart.radius, cropStart.x + deltaX));
+      const newY = Math.max(cropStart.radius, Math.min(1 - cropStart.radius, cropStart.y + deltaY));
+      setCropData({ ...cropStart, x: newX, y: newY });
     }
   };
 
   const handleMouseUp = () => {
+    if (isDragging) {
+      onChange({ image: imagePreview, cropData });
+    }
     setIsDragging(false);
-    setDragType(null);
+    setDragStart({ x: 0, y: 0 });
   };
 
   useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragType, cropData]);
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart, cropStart]);
 
   const applyCrop = () => {
     onChange({ image: imagePreview, cropData });
@@ -87,34 +126,6 @@ const PhotoBlock = ({ data, onChange }) => {
     onChange({ image: null, cropData: null });
   };
 
-  const getCroppedImageCanvas = () => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const size = Math.min(img.width, img.height) * cropData.radius * 2;
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-      ctx.clip();
-      
-      ctx.drawImage(
-        img,
-        cropData.x * img.width - size / 2,
-        cropData.y * img.height - size / 2,
-        size,
-        size,
-        0,
-        0,
-        size,
-        size
-      );
-    };
-    img.src = imagePreview;
-  };
-
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
@@ -125,17 +136,30 @@ const PhotoBlock = ({ data, onChange }) => {
         <div className="space-y-4">
           {/* Preview */}
           <div className="relative bg-gray-100 rounded-lg overflow-hidden">
-            <img
-              src={imagePreview}
-              alt="Молодожёны"
-              className="w-full h-64 object-cover"
-              style={{
-                maskImage: `radial-gradient(circle at ${cropData.x * 100}% ${cropData.y * 100}%, black ${cropData.radius * 100}%, transparent ${cropData.radius * 100}% + 2%)`,
-                WebkitMaskImage: `radial-gradient(circle at ${cropData.x * 100}% ${cropData.y * 100}%, black ${cropData.radius * 100}%, transparent ${cropData.radius * 100}% + 2%)`
-              }}
-            />
+            <div className="w-full h-64 flex items-center justify-center">
+              <div 
+                className="w-64 h-64 rounded-full shadow-xl border-4 border-white overflow-hidden bg-gray-100 flex-shrink-0"
+                style={{
+                  maskImage: cropData 
+                    ? `radial-gradient(circle at ${cropData.x * 100}% ${cropData.y * 100}%, black ${cropData.radius * 100}%, transparent ${cropData.radius * 100}%)`
+                    : 'none',
+                  WebkitMaskImage: cropData 
+                    ? `radial-gradient(circle at ${cropData.x * 100}% ${cropData.y * 100}%, black ${cropData.radius * 100}%, transparent ${cropData.radius * 100}%)`
+                    : 'none'
+                }}
+              >
+                <img 
+                  src={imagePreview} 
+                  alt="Молодожёны"
+                  className="w-full h-full object-cover"
+                  style={cropData ? {
+                    objectPosition: `${cropData.x * 100}% ${cropData.y * 100}%`
+                  } : {}}
+                />
+              </div>
+            </div>
             <div
-              className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors cursor-pointer"
+              className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors cursor-pointer z-10"
               onClick={handleRemove}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,46 +184,33 @@ const PhotoBlock = ({ data, onChange }) => {
               <p className="text-sm font-medium text-gray-700">Выберите область для показа:</p>
               <div
                 ref={containerRef}
-                className="relative bg-gray-200 rounded-lg overflow-hidden cursor-move select-none"
-                style={{ aspectRatio: '1 / 1' }}
+                className="relative bg-gray-200 rounded-lg overflow-hidden select-none"
+                style={{ aspectRatio: '1 / 1', minHeight: '300px' }}
                 onMouseDown={handleMouseDown}
               >
                 <img
                   src={imagePreview}
                   alt="Cropper"
                   className="w-full h-full object-cover"
+                  draggable={false}
                 />
                 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black/50" />
-                
-                {/* Circle mask */}
-                <svg
-                  className="absolute inset-0 w-full h-full"
-                  viewBox="0 0 1 1"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <mask id="circleMask">
-                      <rect width="1" height="1" fill="white" />
-                      <circle
-                        cx={cropData.x}
-                        cy={cropData.y}
-                        r={cropData.radius}
-                        fill="black"
-                      />
-                    </mask>
-                  </defs>
-                  <rect width="1" height="1" fill="black" mask="url(#circleMask)" opacity="0" />
-                </svg>
+                {/* Overlay with circle cutout */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    background: `radial-gradient(circle at ${cropData.x * 100}% ${cropData.y * 100}%, transparent ${cropData.radius * 100}%, rgba(0,0,0,0.6) ${cropData.radius * 100}%)`
+                  }}
+                />
                 
                 {/* Circle outline and controls */}
                 <svg
-                  className="absolute inset-0 w-full h-full"
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  style={{ zIndex: 10 }}
                   viewBox="0 0 1 1"
                   preserveAspectRatio="none"
                 >
-                  {/* Circle */}
+                  {/* Circle outline */}
                   <circle
                     cx={cropData.x}
                     cy={cropData.y}
@@ -207,6 +218,7 @@ const PhotoBlock = ({ data, onChange }) => {
                     fill="none"
                     stroke="#D4AF37"
                     strokeWidth="0.01"
+                    strokeDasharray="0.01,0.01"
                   />
                   
                   {/* Center point */}
@@ -215,30 +227,45 @@ const PhotoBlock = ({ data, onChange }) => {
                     cy={cropData.y}
                     r="0.02"
                     fill="#D4AF37"
+                    stroke="white"
+                    strokeWidth="0.005"
                   />
                   
                   {/* Resize handle */}
                   <circle
                     cx={cropData.x + cropData.radius}
                     cy={cropData.y}
-                    r="0.025"
+                    r="0.03"
                     fill="#D4AF37"
                     stroke="white"
-                    strokeWidth="0.005"
+                    strokeWidth="0.008"
+                    className="pointer-events-auto cursor-ew-resize"
                   />
                 </svg>
               </div>
               
-              <p className="text-xs text-gray-500 text-center">
-                Перетащите круг, чтобы переместить область • потяните край, чтобы изменить размер
-              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={applyCrop}
+                  className="btn-primary flex-1 text-sm"
+                >
+                  ✓ Применить выбор
+                </button>
+                <button
+                  onClick={() => {
+                    const reset = { x: 0.5, y: 0.5, radius: 0.3 };
+                    setCropData(reset);
+                    onChange({ image: imagePreview, cropData: reset });
+                  }}
+                  className="btn-secondary text-sm"
+                >
+                  Сбросить
+                </button>
+              </div>
               
-              <button
-                onClick={applyCrop}
-                className="btn-primary w-full text-sm"
-              >
-                ✓ Применить выбор
-              </button>
+              <p className="text-xs text-gray-500 text-center">
+                Перетащите центр для перемещения • Перетащите правую точку для изменения размера
+              </p>
             </div>
           )}
         </div>
