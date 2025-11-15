@@ -253,11 +253,26 @@ function renderBlockPreview(block, templateId) {
     case 'photo':
       return data.image ? (
         <div className="flex justify-center">
-          <img 
-            src={data.image} 
-            alt="Молодожёны" 
-            className="w-64 h-64 object-cover rounded-full shadow-xl border-4 border-white"
-          />
+          <div 
+            className="w-64 h-64 rounded-full shadow-xl border-4 border-white overflow-hidden bg-gray-100 flex-shrink-0"
+            style={{
+              maskImage: data.cropData 
+                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}% + 2%)`
+                : 'none',
+              WebkitMaskImage: data.cropData 
+                ? `radial-gradient(circle at ${data.cropData.x * 100}% ${data.cropData.y * 100}%, black ${data.cropData.radius * 100}%, transparent ${data.cropData.radius * 100}% + 2%)`
+                : 'none'
+            }}
+          >
+            <img 
+              src={data.image} 
+              alt="Молодожёны"
+              className="w-full h-full object-cover"
+              style={data.cropData ? {
+                objectPosition: `${data.cropData.x * 100}% ${data.cropData.y * 100}%`
+              } : {}}
+            />
+          </div>
         </div>
       ) : null;
 
