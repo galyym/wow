@@ -548,19 +548,35 @@ function renderBlockPreview(block, templateId) {
       };
       
       const getTableSize = (totalTables) => {
+        // Уменьшены размеры столов
         if (totalTables <= 4) {
-          return { size: 140, fontSize: 16, smallFontSize: 12 };
+          return { size: 110, fontSize: 14, smallFontSize: 11 };
         } else if (totalTables <= 6) {
-          return { size: 120, fontSize: 15, smallFontSize: 11 };
+          return { size: 95, fontSize: 13, smallFontSize: 10 };
         } else if (totalTables <= 9) {
-          return { size: 100, fontSize: 14, smallFontSize: 10 };
-        } else if (totalTables <= 12) {
-          return { size: 90, fontSize: 13, smallFontSize: 9 };
-        } else if (totalTables <= 16) {
           return { size: 80, fontSize: 12, smallFontSize: 9 };
-        } else {
+        } else if (totalTables <= 12) {
           return { size: 70, fontSize: 11, smallFontSize: 8 };
+        } else if (totalTables <= 16) {
+          return { size: 65, fontSize: 10, smallFontSize: 8 };
+        } else {
+          return { size: 55, fontSize: 9, smallFontSize: 7 };
         }
+      };
+      
+      // Вычисление оптимальной ширины canvas для превью
+      const calculateCanvasWidth = (tablesPerRow, tableSize) => {
+        const gap = 20;
+        const padding = 30;
+        const width = (tableSize.size * tablesPerRow) + (gap * (tablesPerRow - 1)) + (padding * 2);
+        return Math.max(width, 600);
+      };
+      
+      const calculateCanvasHeight = (rows, tableSize) => {
+        const gap = 20;
+        const padding = 30;
+        const height = (tableSize.size * rows) + (gap * (rows - 1)) + (padding * 2);
+        return Math.max(height, 400);
       };
       
       return data.tables && data.tables.length > 0 ? (
@@ -575,22 +591,26 @@ function renderBlockPreview(block, templateId) {
           <h3 className="text-xl font-bold mb-6 text-gray-900">Рассадка гостей</h3>
           
           {/* Restaurant floor plan using CSS Grid */}
-          <div 
-            className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-8 border-2 border-amber-200 shadow-lg"
-            style={{ 
-              minHeight: data.orientation === 'vertical' ? '600px' : '500px',
-              display: 'grid',
-              gridTemplateColumns: `repeat(${data.tablesPerRow || 3}, 1fr)`,
-              gridTemplateRows: `repeat(${data.rows || 2}, 1fr)`,
-              gap: '20px',
-              padding: '30px',
-              backgroundImage: `
-                linear-gradient(to right, rgba(251, 191, 36, 0.1) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(251, 191, 36, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px'
-            }}
-          >
+          <div>
+            <div 
+              className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-8 border-2 border-amber-200 shadow-lg"
+              style={{ 
+                width: '100%',
+                minHeight: data.orientation === 'vertical' 
+                  ? `${calculateCanvasHeight(data.rows || 2, getTableSize((data.rows || 2) * (data.tablesPerRow || 3)))}px` 
+                  : `${calculateCanvasHeight(data.rows || 2, getTableSize((data.rows || 2) * (data.tablesPerRow || 3)))}px`,
+                display: 'grid',
+                gridTemplateColumns: `repeat(${data.tablesPerRow || 3}, 1fr)`,
+                gridTemplateRows: `repeat(${data.rows || 2}, 1fr)`,
+                gap: '20px',
+                padding: '30px',
+                backgroundImage: `
+                  linear-gradient(to right, rgba(251, 191, 36, 0.1) 1px, transparent 1px),
+                  linear-gradient(to bottom, rgba(251, 191, 36, 0.1) 1px, transparent 1px)
+                `,
+                backgroundSize: '50px 50px'
+              }}
+            >
             {data.tables.map((table, index) => {
               const colors = getTableColor(table.role);
               const rows = data.rows || 2;
@@ -692,9 +712,11 @@ function renderBlockPreview(block, templateId) {
                 </div>
               );
             })}
-            
-            {/* Legend */}
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200">
+          </div>
+          
+          {/* Legend - перемещена вниз */}
+          <div className="mt-4 flex justify-end">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200">
               <p className="text-xs font-semibold text-gray-700 mb-2">Легенда:</p>
               <div className="space-y-1 text-xs">
                 {['Близкий друг', 'Родственник', 'Жиен', 'Көрші', 'Гость'].map(role => {
@@ -711,6 +733,7 @@ function renderBlockPreview(block, templateId) {
                 })}
               </div>
             </div>
+          </div>
           </div>
         </div>
       ) : null;

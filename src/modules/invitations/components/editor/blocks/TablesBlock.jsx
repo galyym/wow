@@ -66,19 +66,19 @@ const TablesBlock = ({ data, onChange }) => {
   const getTableSize = () => {
     const totalTables = rows * tablesPerRow;
     
-    // При малом количестве - крупнее, при большом - мельче
+    // При малом количестве - крупнее, при большом - мельче (уменьшены размеры)
     if (totalTables <= 4) {
-      return { size: 140, fontSize: 16, smallFontSize: 12 };
+      return { size: 110, fontSize: 14, smallFontSize: 11 };
     } else if (totalTables <= 6) {
-      return { size: 120, fontSize: 15, smallFontSize: 11 };
+      return { size: 95, fontSize: 13, smallFontSize: 10 };
     } else if (totalTables <= 9) {
-      return { size: 100, fontSize: 14, smallFontSize: 10 };
-    } else if (totalTables <= 12) {
-      return { size: 90, fontSize: 13, smallFontSize: 9 };
-    } else if (totalTables <= 16) {
       return { size: 80, fontSize: 12, smallFontSize: 9 };
-    } else {
+    } else if (totalTables <= 12) {
       return { size: 70, fontSize: 11, smallFontSize: 8 };
+    } else if (totalTables <= 16) {
+      return { size: 65, fontSize: 10, smallFontSize: 8 };
+    } else {
+      return { size: 55, fontSize: 9, smallFontSize: 7 };
     }
   };
 
@@ -157,6 +157,26 @@ const TablesBlock = ({ data, onChange }) => {
   };
 
   const tableSize = getTableSize();
+  
+  // Вычисление оптимальной ширины canvas на основе количества столов и их размера
+  // Но ограничиваем максимальной шириной контейнера, чтобы избежать вертикальной прокрутки
+  const calculateCanvasWidth = () => {
+    const gap = 20;
+    const padding = 30;
+    // Ширина = (размер стола * количество в ряду) + (промежутки между столами) + (отступы)
+    const calculatedWidth = (tableSize.size * tablesPerRow) + (gap * (tablesPerRow - 1)) + (padding * 2);
+    // Минимальная ширина для удобства просмотра, но не больше 100% контейнера
+    return Math.max(calculatedWidth, 600);
+  };
+  
+  const calculateCanvasHeight = () => {
+    const gap = 20;
+    const padding = 30;
+    // Высота = (размер стола * количество рядов) + (промежутки между рядами) + (отступы)
+    const height = (tableSize.size * rows) + (gap * (rows - 1)) + (padding * 2);
+    // Минимальная высота для удобства просмотра
+    return Math.max(height, 400);
+  };
 
   return (
     <div className="space-y-4">
@@ -209,11 +229,11 @@ const TablesBlock = ({ data, onChange }) => {
       {/* Canvas for table layout using CSS Grid */}
       <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-300">
         <div
-          className="relative bg-white rounded-lg overflow-hidden"
+          className="relative bg-white rounded-lg overflow-visible"
           style={{ 
-            width: '100%', 
-            height: orientation === 'horizontal' ? '500px' : '600px',
-            minHeight: orientation === 'horizontal' ? '500px' : '600px',
+            width: '100%',
+            height: orientation === 'horizontal' ? `${calculateCanvasHeight()}px` : '600px',
+            minHeight: orientation === 'horizontal' ? `${calculateCanvasHeight()}px` : '600px',
             display: 'grid',
             gridTemplateColumns: `repeat(${tablesPerRow}, 1fr)`,
             gridTemplateRows: `repeat(${rows}, 1fr)`,
