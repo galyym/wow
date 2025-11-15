@@ -441,18 +441,98 @@ function renderBlockPreview(block, templateId) {
 
     case 'gift':
       return (data.cardNumber || data.phone) ? (
-        <div 
-          className="p-6 rounded-lg"
-          style={{ 
-            backgroundColor: data.bgColor,
-            fontSize: `${data.fontSize}px`,
-            color: data.color
-          }}
-        >
-          <h3 className="text-xl font-bold mb-4">Реквизиты для подарков</h3>
-          {data.bank && <p className="mb-2">Банк: {data.bank}</p>}
-          {data.cardNumber && <p className="mb-2">Карта: {data.cardNumber}</p>}
-          {data.phone && <p>Телефон: {data.phone}</p>}
+        <div className="relative">
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Реквизиты для подарков</h3>
+          <div 
+            className="relative overflow-hidden rounded-2xl shadow-2xl"
+            style={{
+              background: data.bgColor && data.bgColor.startsWith('linear-gradient')
+                ? data.bgColor
+                : data.bgColor && data.bgColor !== '#ffffff'
+                ? data.bgColor
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              minHeight: '220px',
+              color: data.color || '#ffffff'
+            }}
+          >
+            {/* Holographic effect */}
+            <div className="absolute inset-0 opacity-20">
+              <div 
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)',
+                  backgroundSize: '200% 200%',
+                  animation: 'shimmer 3s infinite'
+                }}
+              />
+            </div>
+
+            {/* Card content */}
+            <div className="relative p-6 h-full flex flex-col justify-between">
+              {/* Top section */}
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    {/* Chip icon */}
+                    <div className="w-10 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-md flex items-center justify-center">
+                      <div className="w-6 h-4 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm">
+                        <div className="w-full h-full border border-yellow-700 rounded-sm" style={{ borderWidth: '1px' }} />
+                      </div>
+                    </div>
+                    {/* Contactless icon */}
+                    <div className="flex gap-1">
+                      <div className="w-1 h-4 bg-white rounded-full" />
+                      <div className="w-1 h-4 bg-white rounded-full" />
+                      <div className="w-1 h-4 bg-white rounded-full" />
+                    </div>
+                  </div>
+                  {data.bank && (
+                    <p className="text-sm font-semibold opacity-90" style={{ fontSize: `${(data.fontSize || 16) * 0.875}px` }}>
+                      {data.bank}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Bank logo placeholder */}
+                <div className="text-2xl font-bold opacity-80">💳</div>
+              </div>
+
+              {/* Card number */}
+              {data.cardNumber && (
+                <div className="mb-6">
+                  <p 
+                    className="text-2xl font-mono font-bold tracking-wider"
+                    style={{ fontSize: `${(data.fontSize || 16) * 1.5}px` }}
+                  >
+                    {data.cardNumber.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim()}
+                  </p>
+                </div>
+              )}
+
+              {/* Bottom section */}
+              <div className="flex items-end justify-between">
+                <div>
+                  {data.phone && (
+                    <div>
+                      <p className="text-xs opacity-75 mb-1" style={{ fontSize: `${(data.fontSize || 16) * 0.75}px` }}>
+                        Телефон
+                      </p>
+                      <p className="font-semibold" style={{ fontSize: `${(data.fontSize || 16) * 0.875}px` }}>
+                        {data.phone}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Card type icon */}
+                <div className="text-3xl opacity-60">💝</div>
+              </div>
+            </div>
+
+            {/* Decorative circles */}
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white opacity-10 rounded-full" />
+            <div className="absolute -top-10 -left-10 w-24 h-24 bg-white opacity-10 rounded-full" />
+          </div>
         </div>
       ) : null;
 

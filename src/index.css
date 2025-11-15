@@ -89,3 +89,13 @@
 .gallery-image-enter {
   animation: fadeIn 0.5s ease-in-out;
 }
+
+/* Анимация блеска для банковской карты */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
