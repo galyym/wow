@@ -33,9 +33,12 @@ const PhotoBlock = ({ data, onChange }) => {
   const getRelativeCoords = (e) => {
     if (!containerRef.current) return { x: 0, y: 0 };
     const rect = containerRef.current.getBoundingClientRect();
+    // Поддержка как мыши, так и touch-событий
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return {
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height
+      x: (clientX - rect.left) / rect.width,
+      y: (clientY - rect.top) / rect.height
     };
   };
 
@@ -43,8 +46,12 @@ const PhotoBlock = ({ data, onChange }) => {
     return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
   };
 
-  const handleMouseDown = (e) => {
+  const handleStart = (e) => {
     if (!containerRef.current) return;
+    // Предотвращаем стандартное поведение для touch-событий
+    if (e.touches) {
+      e.preventDefault();
+    }
     
     const coords = getRelativeCoords(e);
     const distToCenter = getDistance(coords, cropData);
@@ -67,8 +74,12 @@ const PhotoBlock = ({ data, onChange }) => {
     }
   };
 
-  const handleMouseMove = (e) => {
+  const handleMove = (e) => {
     if (!isDragging || !containerRef.current) return;
+    // Предотвращаем стандартное поведение для touch-событий
+    if (e.touches) {
+      e.preventDefault();
+    }
     
     const coords = getRelativeCoords(e);
     const deltaX = coords.x - dragStart.x;
@@ -95,7 +106,7 @@ const PhotoBlock = ({ data, onChange }) => {
     }
   };
 
-  const handleMouseUp = () => {
+  const handleEnd = () => {
     if (isDragging) {
       onChange({ image: imagePreview, cropData });
     }
@@ -105,11 +116,17 @@ const PhotoBlock = ({ data, onChange }) => {
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      // Поддержка мыши
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+      // Поддержка touch-событий
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('touchend', handleEnd);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handleMove);
+        document.removeEventListener('mouseup', handleEnd);
+        document.removeEventListener('touchmove', handleMove);
+        document.removeEventListener('touchend', handleEnd);
       };
     }
   }, [isDragging, dragStart, cropStart]);
@@ -184,9 +201,10 @@ const PhotoBlock = ({ data, onChange }) => {
               <p className="text-sm font-medium text-gray-700">Выберите область для показа:</p>
               <div
                 ref={containerRef}
-                className="relative bg-gray-200 rounded-lg overflow-hidden select-none"
-                style={{ aspectRatio: '1 / 1', minHeight: '300px' }}
-                onMouseDown={handleMouseDown}
+                className="relative bg-gray-200 rounded-lg overflow-hidden select-none touch-none"
+                style={{ aspectRatio: '1 / 1', minHeight: '300px', touchAction: 'none' }}
+                onMouseDown={handleStart}
+                onTouchStart={handleStart}
               >
                 <img
                   src={imagePreview}
@@ -264,7 +282,8 @@ const PhotoBlock = ({ data, onChange }) => {
               </div>
               
               <p className="text-xs text-gray-500 text-center">
-                Перетащите центр для перемещения • Перетащите правую точку для изменения размера
+                Перетащите центр для перемещения • Перетащите правую точку для изменения размера<br />
+                <span className="text-gray-400">Работает на компьютере и мобильных устройствах</span>
               </p>
             </div>
           )}
